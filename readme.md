@@ -11,7 +11,7 @@
 거래가능한 코인의 종류는 bitcoin, ripple, ethereum, dogecoin 4가지로 제한한다.  
 
 
-## [] api 명세
+##  api 명세
 
 성공 시 status 2xx, 클라이언트 에러로 실패 시 4x코드로 반환. 
 모든 response data는 json 형태.  
@@ -19,61 +19,61 @@ authentication 필요한 코드의 경우, header의 Authorization에 Bearer: {K
 에러가 날 경우, {error: '{reason}'}를 보내도록.
 
 
-### [] /register
-회원가입 시 유저에게 10,000$를 제공한다.  
+### /register
+- [x] 회원가입 시 유저에게 10,000$를 제공한다.  
 [:POST]
 
 request
 
-- name: string. 4-12글자. alphanumeric
-- email: string. 100자 미만. email형식
-- password: 8-16글자.
+- [x] name: string. 4-12글자. alphanumeric
+- [x] email: string. 100자 미만. email형식
+- [x] password: 8-16글자.
 
 response
  - {}
 
-### [] /login
+###  /login
 [:POST]
 
 request
 - email
 - password
 
-#### 로그인 시 마다 새로운 키 생성해서 저장
+- [x] 로그인 시 마다 새로운 키 생성해서 저장
 
 response
-- {key: {key}}
+- [x] {key: {key}}
 
-### [] /coins
+###  /coins
 [:GET]
 
 request
 
 response
-- ['bitcoin','ripple', 'dogecoin', 'ethereum']
+- [x] ['bitcoin','ripple', 'dogecoin', 'ethereum']
 
-### [] /balance
+### /balance
 본인의 자산을 조회한다. 없는 자산의 경우 노출시키지 않는다.
 [:GET]  
-:auth_required  
+- [x] :auth_required  
 
 
 request
 
-response
+- [x] response
 - {"usd": 3000, "bitcoin": 1, "ripple": 2, "dogecoin": 3, "ethereum": 4}
 
-### [] /coins/:coin_name
-코인의 현재 시세를 보여준다.
+### /coins/:coin_name
+- [x] 코인의 현재 시세를 보여준다.
 [:GET]
 
 request
 - 
 
-response
+- [x] response
 가격 조회결과를 리턴한다.
 - {price: 30000 }
-
+- [x] 오직 네 종류 코인만 조회가능하게 하기
 
 ### [] /coins/:coin_name/buy
 코인을 구매한다. 가격은 실시간으로 가져온 api의 가격을 따른다.
