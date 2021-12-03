@@ -3,7 +3,7 @@ const { body, validationResult } = require('express-validator'); //입력값 val
 const crypto = require('crypto'); //비밀번호 암호화 위해 사용
 const mongoose = require('mongoose');
 const axios = require('axios');
-const {encryptPassword, setAuth} = require("./utils");//자주 쓰는 함수 utils에서 미리 정의하여 가져와 사용
+const {encryptPassword, setAuth, checkCoinPrice } = require("./utils");//자주 쓰는 함수 utils에서 미리 정의하여 가져와 사용
 //모델들을 가져온다
 const { User, Coin, Asset, Key } = require('./models');
 const app = express();
@@ -95,7 +95,7 @@ app.post('/login', async(req, res) => {
 //user authorization이 필요한 balance조회
 app.get('/balance', setAuth, async (req, res) => {
   //setAuth가 실행되면서 req.user에 찾은 user가 담긴다.
-  //etAuth에서 에러가 발생하지 않으면 async 콜백함수가 실행되면서 해당 유저의 Asset을 찾게된다.
+  //setAuth에서 에러가 발생하지 않으면 async 콜백함수가 실행되면서 해당 유저의 Asset을 찾게된다.
   const user = req.user;
 
   const assets = await Asset.find({user});
@@ -109,29 +109,42 @@ app.get('/balance', setAuth, async (req, res) => {
 //코인 시세 확인
 // ### [] /coins/:coin_name
 app.get('/coins/:coin_name', setAuth, async(req, res) => {
-  const coinName = req.params.coin_name;
-  const activeCoinsData = await Coin.find({isActive: true});
-  const activeCoinsName = activeCoinsData.map((coin) => (coin.name));
-  const activeCoinName = activeCoinsName.find((activeCoin) => (activeCoin == coinName));
-  if (activeCoinName) {
-      const url = `https://api.coingecko.com/api/v3/simple/price?ids=${coinName}&vs_currencies=usd`;
-      const apiRes = await axios.get(url);
-      const price = apiRes.data[coinName].usd;
-      res.send({price}).status(200);
-  } else {
-    res.send({error: 'you can only check the price of bitcoin, dogecoin, ripple and etherium'}).status(400);
-  }
-  // console.log(activeCoinsName)
-  
-  
+  checkCoinPrice(req, res);
 })
 
+
+// request
+// - quantity: number. 소수점 4번째 자리까지.
+
+// response
+// 구매결과를 리턴한다.
+// - {price: 30000, quantity: 1}
+// - 구매불가능한 quantity 입력 시 에러(400) 리턴
+
 app.post('/coin/:coinName/buy', setAuth, async(req, res) => {
-  const coinId = 'bitcoin';
-  const url = `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd`;
-  const apiRes = await axios.get(url);
-  const price = apiRes.data[coinId].usd;
-  const {quantity} = req.body;
+  const user = req.user;  //로그인 된 유저정보 가져온다
+  const assets = await Asset.find({user}); //해당 유저의 지갑가져오기
+  
+  //거래하려는 코인 이름가져오깅
+  const coinName = req.params.coin_name;
+  //거래하려는 코인이 active한 코인인지 확인하기 위해서,,
+  const activeCoinsData = await Coin.find({isActive: true}); //active한 코인들을 가져온다
+  const activeCoinsName = activeCoinsData.map((coin) => (coin.name)); //그중 코인 이름만 가져온다
+  //request의 코인네임과 일치한게 있는지 찾는다.
+  //find없으면 fasly한 값 return하니까 if문으로 처리
+  const activeCoinName = activeCoinsName.find((activeCoin) => (activeCoin == coinName));
+
+  if (activeCoinName) {
+    const url = `https://api.coingecko.com/api/v3/simple/price?ids=${coinName}&vs_currencies=usd`;
+    const apiRes = await axios.get(url);
+    const price = apiRes.data[coinName].usd;
+  } else {
+
+  }
+
+  // const user = req.user;
+
+  
 })
 
 
