@@ -43,7 +43,6 @@ app.post('/register',
     }
 
     const { name, email, password } = req.body; //request로 넘어온 body에 있는 name, email, password를 destructuring해서 변수에 저장
-    //const encryptedPassword = crypto.createHash('sha512').update(password).digest('base64');
     const encryptedPassword = encryptPassword(password); //utils에서 가져온 비밀번호암호화
     
     // body에서 가져온 name, email과 암호화한 비밀번호로 user생성.
@@ -84,7 +83,7 @@ app.post('/login', async(req, res) => {
   if (user === null)
     return res.json({error: 'please check your email or password'}).status(400);
   //key생성해서 user에 저장한다.
-  // user.key = [...user.key, encryptPassword(crypto.randomBytes(200))]; //key는 user당 여러개 생성된다. =>  배열로 저장
+  //key는 user당 여러개 생성된다. =>  배열로 저장
   const key = await user.generateKey();
   console.log(key);
   // await user.save();
@@ -109,7 +108,8 @@ app.get('/balance', setAuth, async (req, res) => {
 //코인 시세 확인
 // ### [] /coins/:coin_name
 app.get('/coins/:coin_name', setAuth, async(req, res) => {
-  checkCoinPrice(req, res);
+  const price = await checkCoinPrice(req, res);
+  res.send({price}).status(200); 
 })
 
 
@@ -121,30 +121,32 @@ app.get('/coins/:coin_name', setAuth, async(req, res) => {
 // - {price: 30000, quantity: 1}
 // - 구매불가능한 quantity 입력 시 에러(400) 리턴
 
-app.post('/coin/:coinName/buy', setAuth, async(req, res) => {
-  const user = req.user;  //로그인 된 유저정보 가져온다
+app.post('/coins/:coin_name/buy', setAuth, async(req, res) => {
+  // console.log(`request user ${req.user}`)
+  const user = req.user;
+  // console.log(user)  //로그인 된 유저정보 가져온다
+  const price = await checkCoinPrice(req, res); //prams에 입력된 name의 코인 시세조회
   const assets = await Asset.find({user}); //해당 유저의 지갑가져오기
-  
-  //거래하려는 코인 이름가져오깅
-  const coinName = req.params.coin_name;
-  //거래하려는 코인이 active한 코인인지 확인하기 위해서,,
-  const activeCoinsData = await Coin.find({isActive: true}); //active한 코인들을 가져온다
-  const activeCoinsName = activeCoinsData.map((coin) => (coin.name)); //그중 코인 이름만 가져온다
-  //request의 코인네임과 일치한게 있는지 찾는다.
-  //find없으면 fasly한 값 return하니까 if문으로 처리
-  const activeCoinName = activeCoinsName.find((activeCoin) => (activeCoin == coinName));
-
-  if (activeCoinName) {
-    const url = `https://api.coingecko.com/api/v3/simple/price?ids=${coinName}&vs_currencies=usd`;
-    const apiRes = await axios.get(url);
-    const price = apiRes.data[coinName].usd;
+  // console.log(assets, 'assets');
+  let usdAsset = await Asset.find({name: 'USD'});//해당 유저의usd지갑가져오기
+  let balance = await usdAsset[0].balance; //usd잔고
+  // console.log(usdAsset[0]._id);
+  const {quantity} = req.body //quantity는 사용자가 사려고 하는 코인수량
+  //todo (1) quantity는 Number, 소수점 4자리까지 받는다.
+  const totalPrice = quantity * price;
+  const myAsset = Asset.find({_id: usdAsset[0]._id});
+  // console.log(myAsset);
+  //todo(2) 잔고보다 높은 수량 사려는 경우 에러핸들링
+  if (balance < totalPrice) {
+    res.send({error: 'Entered quantity is out of your budget!'}).status(400);
   } else {
-
+    let newBalance = balance - totalPrice;
+    Asset.updateOne({_id: usdAsset[0]._id},{$set: {balance: newBalance}});
+    res.send({price: totalPrice, quantity: quantity}).status(200)
+    // .catch((error) => (res.send({error: error}).status(400)))
+    // );
+    // todo(3) 해당 유저 usd지갑에 잔고 변경되었는지 확인필요
   }
-
-  // const user = req.user;
-
-  
 })
 
 
