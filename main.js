@@ -92,7 +92,7 @@ app.post('/login', async(req, res) => {
 })
 
 //user authorization이 필요한 balance조회
-app.get('/balance', setAuth, async (req, res) => {
+app.get('/balance', setAuth, async(req,res) => {
   //setAuth가 실행되면서 req.user에 찾은 user가 담긴다.
   //setAuth에서 에러가 발생하지 않으면 async 콜백함수가 실행되면서 해당 유저의 Asset을 찾게된다.
   const user = req.user;
@@ -113,39 +113,36 @@ app.get('/coins/:coin_name', setAuth, async(req, res) => {
 })
 
 
-// request
-// - quantity: number. 소수점 4번째 자리까지.
-
-// response
-// 구매결과를 리턴한다.
-// - {price: 30000, quantity: 1}
-// - 구매불가능한 quantity 입력 시 에러(400) 리턴
-
-app.post('/coins/:coin_name/buy', setAuth, async(req, res) => {
-  // console.log(`request user ${req.user}`)
-  const user = req.user;
-  // console.log(user)  //로그인 된 유저정보 가져온다
+app.post('/coins/:coin_name/buy', setAuth,
+body('quantity', '소수점 4자리 이하의 숫자만 가능합니다').isNumeric().isLength({max: 6}),
+async (req, res) => {
+ const errors = validationResult(req).errors;
+   if (Object.keys(errors).length !== 0) { //error존재하면 400 bad request를 보내준다.(validation문제니까)
+     let messages = errors.map(error => error.msg)  
+     return res.status(400).json({ errors: messages });
+   }
+   const {quantity} = req.body //quantity는 사용자가 사려고 하는 코인수량
+   //todo (1) quantity는 Number, 소수점 4자리까지 받는다.
+  const numberdQuantity = parseFloat(quantity);
+  const userId = req.userId; //로그인 된 유저id 가져온다 
   const price = await checkCoinPrice(req, res); //prams에 입력된 name의 코인 시세조회
-  const assets = await Asset.find({user}); //해당 유저의 지갑가져오기
-  // console.log(assets, 'assets');
-  let usdAsset = await Asset.find({name: 'USD'});//해당 유저의usd지갑가져오기
-  let balance = await usdAsset[0].balance; //usd잔고
-  // console.log(usdAsset[0]._id);
-  const {quantity} = req.body //quantity는 사용자가 사려고 하는 코인수량
-  //todo (1) quantity는 Number, 소수점 4자리까지 받는다.
-  const totalPrice = quantity * price;
-  const myAsset = Asset.find({_id: usdAsset[0]._id});
-  // console.log(myAsset);
+  const [asset] = await Asset.find({name: 'USD', user: userId}); //해당 유저의 usd지갑가져오기
+  const balance = await asset.balance; //usd잔고
+  const totalPrice = Number(parseFloat(numberdQuantity * price).toFixed(4));
+  console.log(totalPrice)
   //todo(2) 잔고보다 높은 수량 사려는 경우 에러핸들링
   if (balance < totalPrice) {
     res.send({error: 'Entered quantity is out of your budget!'}).status(400);
   } else {
-    let newBalance = balance - totalPrice;
-    Asset.updateOne({_id: usdAsset[0]._id},{$set: {balance: newBalance}});
-    res.send({price: totalPrice, quantity: quantity}).status(200)
-    // .catch((error) => (res.send({error: error}).status(400)))
-    // );
-    // todo(3) 해당 유저 usd지갑에 잔고 변경되었는지 확인필요
+    let newBalance = Number(parseFloat(balance - totalPrice).toFixed(4));
+    await Asset.findOneAndUpdate({_id: asset._id},{balance: newBalance}) //await안붙여주면 반영안된당.. 삽질두시간
+    // todo(3) 유저가 구매한 코인지갑 + 수량
+    const [coinAsset] = await Asset.find({name: req.params.coin_name, user: userId});
+    const coinQuantity = coinAsset.balance + numberdQuantity;
+    await Asset.findOneAndUpdate({name: req.params.coin_name, user: userId},{balance: coinQuantity});
+    console.log(coinAsset)
+    res.send({price: totalPrice, quantity: numberdQuantity}).status(200)
+    // todo(4) 해당 유저 usd지갑에 잔고 변경되었는지 확인필요 - 변경된다
   }
 })
 

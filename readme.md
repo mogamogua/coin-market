@@ -75,38 +75,38 @@ request
 - {price: 30000 }
 - [x] 오직 네 종류 코인만 조회가능하게 하기
 
-### [] /coins/:coin_name/buy
+### /coins/:coin_name/buy
 코인을 구매한다. 가격은 실시간으로 가져온 api의 가격을 따른다.
 [:POST]
-:auth_required  
+- [x] :auth_required  
 
 request
-- quantity: number. 소수점 4번째 자리까지.
+- [x] quantity: number. 소수점 4번째 자리까지.
 
 response
 구매결과를 리턴한다.
-- {price: 30000, quantity: 1}
-- 구매불가능한 quantity 입력 시 에러(400) 리턴
+- [x] {price: 30000, quantity: 1}
+- [x] 구매불가능한 quantity 입력 시 에러(400) 리턴
 
-### [] /coins/:coin_name/sell
+### /coins/:coin_name/sell
 코인을 판매한다. 가격은 실시간으로 가져온 api의 가격을 따른다.
 [:POST]
-:auth_required  
+- [ ]:auth_required  
 
 
 request
-- quantity: number. 소수점 4번째 자리까지. (5자리 이상일 경우 에러 리턴)
+- [ ] quantity: number. 소수점 4번째 자리까지. (5자리 이상일 경우 에러 리턴)
 
 
 response
 구매결과를 리턴한다.
-- {price: 30000, quantity: 1}
-- 본인이 가진 자산 초과로 판매 요청 시 에러(400) 리턴
+- [ ] {price: 30000, quantity: 1}
+- [ ] 본인이 가진 자산 초과로 판매 요청 시 에러(400) 리턴
 
 
 ## models
 
-다음의 모델들이 구현되어 있어야 한다.  
+- [x] 다음의 모델들이 구현되어 있어야 한다.  
 
 users, keys, coins, assets
 
