@@ -44,7 +44,7 @@ const setAuth = async(req, res, next) => {
         //price를 리턴한다
         return price;
     } else {
-      res.send({error: 'you can only check the price of bitcoin, dogecoin, ripple and etherium'}).status(400);
+      res.send({error: 'you can only check the price of bitcoin, dogecoin, ripple, cosmos, cardano and etherium'}).status(400);
     }
   }
 
