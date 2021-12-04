@@ -16,14 +16,17 @@ const setAuth = async(req, res, next) => {
     return res.send({error: 'Wrong Authorization'}).status(400);
 
   // const user = await User.find(user => user.keys.includes(key));
-  const myKey = await Key.find({key}); //받은 key로 Key모델에서 일치하는 키 찾기
-  const userId = myKey[0].user; //그 키의 user정보가져오기 - 받은 key와 연결된 유저를 찾았당
+  try {
+    const myKey = await Key.find({key})//받은 key로 Key모델에서 일치하는 키 찾기
+    const userId = myKey[0].user; //그 키의 user정보가져오기 - 받은 key와 연결된 유저를 찾았당
+    if (!userId)
+      return res.send({error: 'Cannot find user'}).status(404);
   
-  if (!userId)
-    return res.send({error: 'Cannot find user'}).status(404);
+    req.userId = userId;
+    return next();
+  } catch (err) {
+    return res.send({error: 'invalid key'})  } 
 
-  req.userId = userId;
-  return next();
   }
 
   const checkCoinPrice = async (req, res) => {

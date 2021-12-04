@@ -91,17 +91,17 @@ response
 ### /coins/:coin_name/sell
 코인을 판매한다. 가격은 실시간으로 가져온 api의 가격을 따른다.
 [:POST]
-- [ ]:auth_required  
+- [x] :auth_required  
 
 
 request
-- [ ] quantity: number. 소수점 4번째 자리까지. (5자리 이상일 경우 에러 리턴)
+- [x] quantity: number. 소수점 4번째 자리까지. (5자리 이상일 경우 에러 리턴)
 
 
 response
 구매결과를 리턴한다.
-- [ ] {price: 30000, quantity: 1}
-- [ ] 본인이 가진 자산 초과로 판매 요청 시 에러(400) 리턴
+- [x] {price: 30000, quantity: 1}
+- [x] 본인이 가진 자산 초과로 판매 요청 시 에러(400) 리턴
 
 
 ## models
@@ -116,19 +116,19 @@ express, mongoose, jsonwebtoken, coingecko-api, express-validator. node-fetch, a
 
 ## 추가 스펙
 
-- 코인 2종 추가.  
-- 로그인 시 jwt사용하기.(http://jwt.io)  
-- 코드샌드박스에 올려, url 2값만 제출.
- -   codesandbox.txt 
+- [x] 코인 2종 추가.  
+- [ ] 로그인 시 jwt사용하기.(http://jwt.io)  //나중에 해보겠습니다...꼭...
+- [ ] 코드샌드박스에 올려, url 2값만 제출.
+- codesandbox.txt 
 ```
 https://codesandbox.io/s/determined-wildflower-1lcql?file=/src/index.js
 https://1lcql.sse.codesandbox.io/
 ```
-- 코인 구매, 판매 시 전량구매/전량판매 기능 구현. (ex - xrp 전량 구매 => 사용가능한 usd를 다 사용하여 xrp구매)
+- [x] 코인 구매, 판매 시 전량구매/전량판매 기능 구현. (ex - xrp 전량 구매 => 사용가능한 usd를 다 사용하여 xrp구매)
 
 ### 전량 구매/판매
 
-- 구매 / 판매 로직 이용하되, quantity 대신 all: true를 request로 전달
+- [x] 구매 / 판매 로직 이용하되, quantity 대신 all: true를 request로 전달
 ex) {all: true}
 
 ### JWT

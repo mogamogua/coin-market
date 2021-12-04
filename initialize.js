@@ -5,7 +5,7 @@ const init = async () => {
   await Asset.deleteMany();
   await Coin.deleteMany();
   await Key.deleteMany();
-  const coins = ['bitcoin', 'ripple', 'dogecoin', 'ethereum'];
+  const coins = ['bitcoin', 'ripple', 'dogecoin', 'ethereum', 'cosmos', 'cardano'];
 
   for (const _coin of coins) {
       const coin = new Coin({name: _coin, isActive: true});
